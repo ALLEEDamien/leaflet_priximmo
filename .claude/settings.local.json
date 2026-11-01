@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://www.data.gouv.fr/api/1/datasets/64998de5926530ebcecc7b15/\")",
+      "Bash(python -c \"import sys,json;d=json.load\\(sys.stdin\\);[print\\(r['id'],r['title'],r['url']\\) for r in d['resources']]\")",
+      "Bash(curl -s -i 'https://tabular-api.data.gouv.fr/api/resources/851d342f-9c96-41c1-924a-11a7a7aae8a6/data/?echelle_geo__exact=commune&code_geo__contains=33063&page_size=5')",
+      "Bash(npm init *)",
+      "Bash(npm i *)"
+    ]
+  }
+}
