@@ -1,0 +1,25 @@
+# Dépendances (réinstallées avec `npm install`)
+node_modules/
+
+# Journaux
+npm-debug.log*
+*.log
+
+# Variables d'environnement et clés (par exemple une clé MapTiler)
+.env
+.env.*
+
+# Éditeurs et systèmes
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python (server.py)
+__pycache__/
+*.pyc
+
+# Fichiers temporaires
+*.tmp
+*.swp
