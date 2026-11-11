@@ -13,8 +13,8 @@ Cliquez sur un département pour colorer ses communes, filtrez par type de bien,
 - **Barre de recherche** de département, avec suggestions (nom ou code, sans tenir compte des accents) et navigation au clavier.
 - **Filtre par type de bien** : tous (appartements et maisons), appartements, maisons, locaux commerciaux.
 - **Échelle de couleurs dynamique**, recalculée selon le type de bien et le département affiché.
-- **Classement** des 5 communes les plus chères ou les moins chères du département.
-- **Panneau d'une commune** : prix médian, comparaison avec le département, ventes par type de bien.
+- **Classement** des 5 communes les plus chères ou les moins chères du département, selon le type de bien filtré. Seules les communes avec **au moins 10 ventes** sont classées : le prix médian de quelques ventes n'est pas représentatif.
+- **Panneau d'une commune** : prix médian, comparaison avec le département, **place dans le classement du département** (top 5 des plus chères ou des moins chères, hors du top 5, ou hors classement faute de ventes), ventes par type de bien.
 - **Fenêtre de détail** : chiffres clés, évolution mensuelle du prix (commune, département, France), ventes par mois, répartition par type de bien, comparaison, et tableau des données.
 - **Chargement à la demande** avec cache dans le navigateur : on ne télécharge que ce que l'utilisateur consulte, une seule fois.
 
@@ -98,6 +98,7 @@ Chaque module a une seule responsabilité et ne communique avec les autres que p
 - **Chargement à la demande** : au démarrage, seuls les contours des départements et leurs 97 prix sont chargés. Les communes d'un département, leurs prix et les statistiques détaillées ne sont demandés qu'à la sélection.
 - **Cache** : chaque réponse est conservée 30 jours dans le cache du navigateur. `server.py` expose `/__session`, un identifiant différent à chaque lancement du serveur : quand il change, le cache est vidé. Un simple rechargement de la page ne le vide pas.
 - **Échelle des départements** : 7 couleurs réparties par quantiles, donc à peu près autant de départements par couleur.
+- **Classement** : pour le type de bien filtré, les communes du département sont triées par prix médian au m². Une commune entre dans le classement à partir de 10 ventes (`MIN_RANKING_SALES` dans `js/config.js`). Le top 5 s'affiche dans la fenêtre « Top 5 des communes » (boutons ↑ prix croissants, ↓ prix décroissants), et le rang de chaque commune (par exemple « 8ᵉ plus chère sur 472 communes ») est indiqué dans son panneau. Le rang compte uniquement les communes présentes dans le fichier de contours.
 - **Échelle des communes** : 7 classes de largeur égale. Le bas est fixé à 1 000 €/m² pour tous les départements. Le haut est la moyenne des 5 prix les plus élevés moins 50 €, arrondie à la dizaine. Les prix au-delà prennent la couleur la plus foncée.
 
 ## Limites connues
