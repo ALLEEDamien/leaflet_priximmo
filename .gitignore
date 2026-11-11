@@ -10,6 +10,7 @@ npm-debug.log*
 .env.*
 
 # Éditeurs et systèmes
+.claude/
 .vscode/
 .idea/
 .DS_Store
