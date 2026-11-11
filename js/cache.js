@@ -3,7 +3,11 @@ import { CACHE_NAME, CACHE_TTL } from './config.js';
 
 // Le cache est vidé uniquement quand le serveur (server.py) a été relancé : /__session renvoie un id propre à chaque lancement.
 // F5 ne vide rien. Sans server.py (404, autre serveur), le cache est simplement conservé.
+// En ligne (GitHub Pages), il n'y a pas de server.py : on ne tente pas l'appel, le cache expire après CACHE_TTL.
+const isLocal = ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname);
+
 async function clearCacheIfServerRestarted() {
+  if (!isLocal) return;
   try {
     const { id } = await (await fetch('/__session', { cache: 'no-store' })).json();
     if (localStorage.getItem('session-id') !== id) {

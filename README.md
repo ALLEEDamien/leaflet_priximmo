@@ -4,6 +4,8 @@ Carte interactive des prix de l'immobilier au m² en France, des départements j
 
 Cliquez sur un département pour colorer ses communes, filtrez par type de bien, consultez le classement des communes les plus ou moins chères, puis ouvrez la fiche détaillée d'une commune avec ses graphiques.
 
+**Démo en ligne : <https://alleedamien.github.io/leaflet_priximmo/>**
+
 ## Fonctionnalités
 
 - **Carte des départements** (métropole et DOM) colorée selon le prix médian au m², avec une légende.
@@ -54,6 +56,14 @@ npm run build      # compilation unique
 npm run watch      # recompilation à chaque sauvegarde
 ```
 
+## Déploiement sur GitHub Pages
+
+Le site est statique : il se publie tel quel. Le workflow [.github/workflows/pages.yml](.github/workflows/pages.yml) compile le CSS puis déploie `index.html`, `css/` et `js/` à chaque push sur `master`.
+
+Réglage à faire une seule fois dans le dépôt GitHub : **Settings → Pages → Build and deployment → Source : GitHub Actions**.
+
+En ligne, `server.py` n'existe pas : le cache du navigateur n'est donc pas vidé au redémarrage d'un serveur, il expire après 30 jours. Pour forcer le rechargement des données chez tous les visiteurs après un changement de source, changez `CACHE_NAME` dans `js/config.js`.
+
 ## Structure du projet
 
 ```
@@ -61,6 +71,7 @@ index.html           structure de la page
 server.py            serveur local (fichiers statiques + identifiant de session)
 css/input.css        styles Tailwind (source)
 css/style.css        CSS compilé
+.github/workflows/   déploiement sur GitHub Pages
 js/
   main.js            point d'entrée, assemble les modules
   config.js          URLs des sources, types de bien, paramètres du cache
