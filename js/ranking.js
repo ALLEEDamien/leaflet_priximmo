@@ -1,4 +1,5 @@
 // Classement flottant des communes du département sélectionné : top 5, par prix croissants ou décroissants
+import { MIN_RANKING_SALES } from './config.js';
 import { activeScale, currentType } from './store.js';
 import { esc, fmt } from './utils.js';
 
@@ -15,14 +16,30 @@ let state = null; // { depName, items: [{ code, nom, price }] }
 function render() {
   if (!state) return;
   const sorted = [...state.items].sort((a, b) => order === 'desc' ? b.price - a.price : a.price - b.price);
-  sub.textContent = `${state.depName} · ${currentType().label}`;
+  sub.textContent = `${state.depName} · ${currentType().label} · au moins ${MIN_RANKING_SALES} ventes`;
   sortButtons.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.order === order)));
   list.innerHTML = sorted.slice(0, TOP).map((it, i) => `
-    <li class="ranking-item" data-code="${esc(it.code)}">
+    <li class="ranking-item" data-code="${esc(it.code)}" title="${fmt(it.sales)} ventes">
       <span class="ranking-rank">${i + 1}</span>
       <span class="ranking-name">${esc(it.nom)}</span>
       <span class="ranking-price"><span class="dot" style="background:${activeScale().color(it.price)}"></span>${fmt(it.price)} €/m²</span>
     </li>`).join('');
+}
+
+// Position d'une commune dans le classement du département (même règle que showRanking : au moins MIN_RANKING_SALES ventes)
+// Renvoie null si la commune est inconnue, sinon { eligible, sales, total, fromTop, fromBottom, top, inTop: 'high' | 'low' | null }
+export function rankOf(items, code) {
+  const me = items.find(it => it.code === code);
+  if (!me) return null;
+  const sales = me.sales ?? 0;
+  if (sales < MIN_RANKING_SALES) return { eligible: false, sales };
+  const eligible = items.filter(it => (it.sales ?? 0) >= MIN_RANKING_SALES);
+  const fromTop = 1 + eligible.filter(it => it.price > me.price).length;
+  const fromBottom = 1 + eligible.filter(it => it.price < me.price).length;
+  let inTop = null;
+  if (fromTop <= TOP) inTop = 'high';
+  else if (fromBottom <= TOP) inTop = 'low';
+  return { eligible: true, sales, total: eligible.length, fromTop, fromBottom, top: TOP, inTop };
 }
 
 // onPick(code) est appelé au clic sur une commune du classement
@@ -34,9 +51,12 @@ export function initRanking(onPick) {
   });
 }
 
-// items : communes avec un prix pour le type de bien filtré
+// items : communes avec un prix pour le type de bien filtré ; seules celles avec assez de ventes sont classées,
+// car le prix médian de quelques ventes n'est pas représentatif
 export function showRanking(depName, items) {
-  state = { depName, items };
+  const eligible = items.filter(it => (it.sales ?? 0) >= MIN_RANKING_SALES);
+  if (!eligible.length) return hideRanking();
+  state = { depName, items: eligible };
   root.hidden = false;
   render();
 }

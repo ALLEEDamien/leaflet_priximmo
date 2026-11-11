@@ -33,5 +33,9 @@ export const DEFAULT_TYPE = 'all';
 export const MONTHLY_API_URL = 'https://tabular-api.data.gouv.fr/api/resources/03fba98d-885b-43c0-8986-d299cabc29da/data/';
 export const PAGE_SIZE = 200;
 
+// Données jugées peu fiables : médianes mensuelles aberrantes (ignorées) et communes trop peu vendeuses (hors classement)
+export const MIN_PLAUSIBLE_PRICE = 100; // €/m²
+export const MIN_RANKING_SALES = 10;
+
 export const CACHE_NAME = 'immo-v1';
 export const CACHE_TTL = 30 * 24 * 3600 * 1000; // 30 jours

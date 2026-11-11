@@ -6,15 +6,16 @@ import { initDetail, openDetail } from './detail.js';
 import { initFilters } from './filters.js';
 import { initMap } from './map.js';
 import { initPanel, refreshPanel, showCommune } from './panel.js';
-import { hideRanking, initRanking, showRanking } from './ranking.js';
+import { hideRanking, initRanking, rankOf, showRanking } from './ranking.js';
 import { initSearchbar } from './searchbar.js';
-import { addPrices, currentType, filter, resetPrices, setCommuneScale, setDepartmentScale } from './store.js';
+import { addPrices, addSales, currentType, filter, resetPrices, setCommuneScale, setDepartmentScale } from './store.js';
 
 const map = initMap();
 const info = addInfoControl(map);
 const legend = addLegend(map);
 initDetail();
 initPanel({
+  getRank: code => rankOf(choropleth.communeItems(), code),
   onDetail: (commune, depCode) => openDetail(commune, { code: depCode, nom: choropleth.selected()?.nom ?? depCode })
 });
 
@@ -43,19 +44,20 @@ function updateLegend() {
 // Changement de type de bien : recharge les prix (départements + communes affichées), recalcule les échelles, recolore
 async function applyFilter(typeId) {
   filter.type = typeId;
-  const { column } = currentType();
+  const { column, salesColumn } = currentType();
   const dep = choropleth.selected();
   try {
-    const [departmentPrices, communePrices] = await Promise.all([
+    const [departmentPrices, communes] = await Promise.all([
       fetchDepartmentPrices(column),
-      dep ? fetchCommunePrices(dep.code, column) : {}
+      dep ? fetchCommunePrices(dep.code, column, salesColumn) : { prices: {}, sales: {} }
     ]);
     if (filter.type !== typeId) return; // l'utilisateur a re-cliqué entre-temps
     resetPrices();
     addPrices(departmentPrices);
-    addPrices(communePrices);
+    addPrices(communes.prices);
+    addSales(communes.sales);
     setDepartmentScale(Object.values(departmentPrices));
-    if (dep) setCommuneScale(Object.values(communePrices));
+    if (dep) setCommuneScale(Object.values(communes.prices));
     choropleth.restyle();
     updateLegend();
     updateRanking();

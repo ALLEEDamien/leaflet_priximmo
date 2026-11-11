@@ -1,7 +1,7 @@
 // Couches colorées de la carte : départements, puis communes du département sélectionné
 import { fetchCommunePrices, fetchCommunesGeo } from './api.js';
 import { NO_DATA_COLOR } from './colors.js';
-import { addPrices, currentType, prices, scales, setCommuneScale } from './store.js';
+import { addPrices, addSales, currentType, prices, sales, scales, setCommuneScale } from './store.js';
 
 // onCommuneClick(properties, codeDépartement) est appelé au clic sur une commune ;
 // onScaleChange() quand l'échelle de couleurs (donc la légende) a changé ;
@@ -48,13 +48,15 @@ export function createChoropleth(map, info, { onCommuneClick, onScaleChange, onC
     info.setHint('Survolez une commune');
     info.update(l.feature.properties);
     try {
-      const column = currentType().column;
-      const [geoC, firstPrices] = await Promise.all([fetchCommunesGeo(code, nom), fetchCommunePrices(code, column)]);
+      const type = currentType();
+      const [geoC, first] = await Promise.all([fetchCommunesGeo(code, nom), fetchCommunePrices(code, type.column, type.salesColumn)]);
       if (selectedCode !== code) return; // l'utilisateur a changé de département entre-temps
       // le filtre a changé pendant le chargement : on récupère les prix du nouveau type
-      const pricesC = column === currentType().column ? firstPrices : await fetchCommunePrices(code, currentType().column);
+      const now = currentType();
+      const { prices: pricesC, sales: salesC } = type === now ? first : await fetchCommunePrices(code, now.column, now.salesColumn);
       if (selectedCode !== code) return;
       addPrices(pricesC);
+      addSales(salesC);
       setCommuneScale(Object.values(pricesC));
       onScaleChange();
       communeLayer = L.geoJSON(geoC, {
@@ -81,9 +83,9 @@ export function createChoropleth(map, info, { onCommuneClick, onScaleChange, onC
   // Département sélectionné { code, nom } ou null
   const selected = () => (selectedCode ? { code: selectedCode, nom: selectedName } : null);
 
-  // Communes affichées qui ont un prix pour le type de bien filtré : [{ code, nom, price }]
+  // Communes affichées qui ont un prix pour le type de bien filtré : [{ code, nom, price, sales }]
   const communeItems = () => (communeLayer ? communeLayer.getLayers() : [])
-    .map(c => ({ code: c.feature.properties.code, nom: c.feature.properties.nom, price: prices[c.feature.properties.code] }))
+    .map(c => ({ code: c.feature.properties.code, nom: c.feature.properties.nom, price: prices[c.feature.properties.code], sales: sales[c.feature.properties.code] }))
     .filter(it => it.price != null);
 
   // Zoome sur une commune affichée et ouvre son panneau

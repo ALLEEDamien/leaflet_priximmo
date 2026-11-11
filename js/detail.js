@@ -2,7 +2,7 @@
 // et comparaison avec le département et la France. Tout est calculé sur le type de bien choisi dans la fenêtre.
 import { fetchMonthly, fetchTerritoryDetails } from './api.js';
 import { barChart, hBarChart, lineChart, monthLabelLong } from './charts.js';
-import { PROPERTY_TYPES } from './config.js';
+import { MIN_PLAUSIBLE_PRICE, PROPERTY_TYPES } from './config.js';
 import { filter } from './store.js';
 import { esc, fmt } from './utils.js';
 
@@ -43,9 +43,14 @@ export function initDetail() {
   }).observe(body);
 }
 
+// Un type de bien sans aucune vente dans la commune est grisé (rien à afficher)
+const hasSales = (id) => state.data?.cw?.[PROPERTY_TYPES[id].column] != null;
+
 function renderTypes() {
-  typesEl.innerHTML = Object.entries(PROPERTY_TYPES).map(([id, t]) =>
-    `<button type="button" class="chip" data-type="${id}" aria-pressed="${id === state.typeId}">${esc(t.label)}</button>`).join('');
+  typesEl.innerHTML = Object.entries(PROPERTY_TYPES).map(([id, t]) => {
+    const empty = state.data && !hasSales(id);
+    return `<button type="button" class="chip" data-type="${id}" aria-pressed="${id === state.typeId}"${empty ? ' disabled title="Aucune vente de ce type dans cette commune"' : ''}>${esc(t.label)}</button>`;
+  }).join('');
 }
 
 // commune : { nom, code } ; dep : { nom, code }
@@ -68,6 +73,8 @@ export async function openDetail(commune, dep) {
     ]);
     if (t !== token) return;
     state.data = { cw, dw, nw, cm, dm, nm };
+    if (cw && !hasSales(state.typeId)) state.typeId = 'all'; // le type filtré sur la carte n'existe pas ici
+    renderTypes();
     render();
   } catch (err) {
     console.error(err);
@@ -76,9 +83,12 @@ export async function openDetail(commune, dep) {
 }
 
 // Valeurs d'une colonne mensuelle alignées sur la liste de mois (null si le mois manque)
-const align = (months, rows, column) => {
+const align = (months, rows, column, min = -Infinity) => {
   const byMonth = new Map(rows.map(r => [r.annee_mois, r[column]]));
-  return months.map(m => byMonth.get(m) ?? null);
+  return months.map(m => {
+    const v = byMonth.get(m) ?? null;
+    return v != null && v >= min ? v : null;
+  });
 };
 
 function stat(label, value, hint) {
@@ -93,7 +103,10 @@ function compute() {
     t, months,
     price: cw?.[t.column] ?? null, sales: cw?.[t.salesColumn] ?? null,
     depPrice: dw?.[t.column] ?? null, frPrice: nw?.[t.column] ?? null,
-    cPrice: align(months, cm, t.monthlyColumn), dPrice: align(months, dm, t.monthlyColumn), fPrice: align(months, nm, t.monthlyColumn),
+    // médianes mensuelles aberrantes (quelques ventes à surface faussée) : ignorées plutôt que tracées à ~0 €/m²
+    cPrice: align(months, cm, t.monthlyColumn, MIN_PLAUSIBLE_PRICE),
+    dPrice: align(months, dm, t.monthlyColumn, MIN_PLAUSIBLE_PRICE),
+    fPrice: align(months, nm, t.monthlyColumn, MIN_PLAUSIBLE_PRICE),
     cSales: align(months, cm, t.monthlySalesColumn)
   };
 }

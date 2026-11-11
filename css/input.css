@@ -48,7 +48,7 @@
     @apply md:fixed md:right-0.5 md:top-[9.5rem] md:z-[1100] md:w-[21rem] md:px-2 md:py-1 md:flex md:flex-col md:gap-3
            md:max-h-[calc(100vh-20rem)] md:overflow-y-auto md:pointer-events-none;
   }
-  .side-stack > * { @apply md:pointer-events-auto; }
+  .side-stack > * { @apply md:pointer-events-auto md:shrink-0; } /* la colonne défile au lieu d'écraser ses éléments */
 
   /* ---------- Classement des communes ---------- */
   .ranking {
@@ -87,6 +87,7 @@
     @apply px-3.5 py-1.5 rounded-full border border-slate-200 bg-white text-sm text-slate-600 cursor-pointer transition
            hover:bg-slate-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-blue-500;
   }
+  .chip:disabled { @apply opacity-40 cursor-not-allowed hover:bg-white; }
   .chip[aria-pressed="true"] { @apply bg-blue-600 border-blue-600 text-white hover:bg-blue-700; }
   .detail-body { @apply flex-1 overflow-y-auto px-6 pb-6; }
   .detail-foot { @apply mt-4 mb-0 text-xs text-slate-400; }
@@ -113,6 +114,7 @@
   .chart-label { @apply fill-slate-600 text-[11px] font-medium; }
   .chart-line { @apply fill-none stroke-2; stroke-linejoin: round; stroke-linecap: round; }
   .chart-cross { @apply stroke-slate-300 stroke-1; }
+  .chart-point { @apply stroke-white stroke-1; }
   .chart-dot { @apply stroke-white stroke-2; }
   .chart-bar { @apply opacity-80; }
   .chart-bar.on { @apply opacity-100; }
@@ -161,6 +163,11 @@
   .panel-price { @apply flex items-baseline gap-2 px-5 pt-1; }
   .panel-price-value { @apply text-3xl font-bold; }
   .panel-price-unit { @apply text-sm text-slate-500; }
+  .panel-rank { @apply mx-5 mt-2 px-3 py-2 rounded-lg text-sm; }
+  .panel-rank-label { @apply mb-0.5 text-xs uppercase tracking-wide opacity-70; }
+  .rank-high { @apply bg-red-50 text-red-800; }
+  .rank-low { @apply bg-emerald-50 text-emerald-800; }
+  .rank-mid, .rank-none { @apply bg-slate-100 text-slate-700; }
   .panel-badge { @apply inline-flex items-center gap-1.5 mx-5 mt-2 px-2.5 py-1 rounded-full text-xs font-medium; }
   .badge-up { @apply bg-red-50 text-red-700; }
   .badge-down { @apply bg-emerald-50 text-emerald-700; }

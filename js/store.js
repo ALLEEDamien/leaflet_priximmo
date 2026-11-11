@@ -4,8 +4,13 @@ import { createScale } from './colors.js';
 import { DEFAULT_TYPE, PROPERTY_TYPES } from './config.js';
 
 export const prices = {};
+export const sales = {}; // nombre de ventes par commune pour le type de bien filtré
 export const addPrices = more => Object.assign(prices, more);
-export const resetPrices = () => { for (const k of Object.keys(prices)) delete prices[k]; };
+export const addSales = more => Object.assign(sales, more);
+export const resetPrices = () => {
+  for (const k of Object.keys(prices)) delete prices[k];
+  for (const k of Object.keys(sales)) delete sales[k];
+};
 
 export const filter = { type: DEFAULT_TYPE };
 export const currentType = () => PROPERTY_TYPES[filter.type];

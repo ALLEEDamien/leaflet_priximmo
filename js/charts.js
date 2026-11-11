@@ -2,8 +2,11 @@
 // Marques fines, grille discrète, ligne de repère + infobulle au survol, étiquettes directes en bout de courbe
 import { esc, fmt } from './utils.js';
 
-const MARGIN = { top: 12, right: 100, bottom: 28, left: 56 };
-const LABEL_MAX = 13; // longueur max d'une étiquette directe (le nom complet reste dans l'infobulle et la légende)
+const BASE_MARGIN = { top: 12, right: 16, bottom: 28, left: 56 };
+const LABEL_ROOM = 140; // marge droite des courbes pour les étiquettes directes
+const COMPACT_WIDTH = 560; // en dessous, pas d'étiquettes directes (la légende suffit)
+const SPARSE_POINTS = 30; // série avec au plus ce nombre de points : tous les points sont marqués
+const LABEL_MAX = 20; // longueur max d'une étiquette directe (le nom complet reste dans l'infobulle et la légende)
 const HEIGHT = 240;
 const MIN_WIDTH = 300;
 
@@ -59,6 +62,8 @@ export function lineChart(el, { labels, series, unit = '€/m²', height = HEIGH
   const W = Math.max(el.clientWidth, MIN_WIDTH);
   const all = series.flatMap(s => s.values).filter(v => v != null);
   if (!all.length) return empty(el);
+  const compact = W < COMPACT_WIDTH;
+  const MARGIN = { ...BASE_MARGIN, right: compact ? BASE_MARGIN.right : LABEL_ROOM };
 
   const { lo, hi, step } = niceScale(Math.min(...all), Math.max(...all));
   const iw = W - MARGIN.left - MARGIN.right;
@@ -85,12 +90,24 @@ export function lineChart(el, { labels, series, unit = '€/m²', height = HEIGH
     paths += `<path class="chart-line" d="${d}" style="stroke:${s.color}"/>`;
   });
 
+  // Repères sur les points : tous si la série est clairsemée, sinon seulement les mois isolés (sans voisin),
+  // qui n'ont aucun trait pour les relier et seraient invisibles
+  let markers = '';
+  series.forEach(s => {
+    const count = s.values.filter(v => v != null).length;
+    s.values.forEach((v, i) => {
+      if (v == null) return;
+      const isolated = s.values[i - 1] == null && s.values[i + 1] == null;
+      if (isolated || count <= SPARSE_POINTS) markers += `<circle class="chart-point" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="3.5" style="fill:${s.color}"/>`;
+    });
+  });
+
   // Étiquettes directes en bout de courbe
   const ends = series.map(s => {
     const i = s.values.findLastIndex(v => v != null);
     return i < 0 ? null : { s, i, y: y(s.values[i]) };
   }).filter(Boolean);
-  const labelsSvg = spread(ends, 14).map(e =>
+  const labelsSvg = compact ? '' : spread(ends, 14).map(e =>
     `<circle cx="${x(e.i) + 12}" cy="${e.y - 3}" r="4" style="fill:${e.s.color}"/>`
     + `<text class="chart-label" x="${x(e.i) + 20}" y="${e.y}">${esc(shorten(e.s.name))}</text>`).join('');
 
@@ -98,7 +115,7 @@ export function lineChart(el, { labels, series, unit = '€/m²', height = HEIGH
     + series.map(s => `<circle class="chart-dot" r="5" visibility="hidden" style="fill:${s.color}"/>`).join('');
 
   const ui = frame(el, `<svg class="chart-svg" width="${W}" height="${height}" viewBox="0 0 ${W} ${height}" role="img" aria-label="Courbes en ${esc(unit)}">
-    ${g}${paths}${labelsSvg}${cross}<rect class="chart-hit" x="${MARGIN.left}" y="${MARGIN.top}" width="${iw}" height="${ih}"/></svg>`);
+    ${g}${paths}${markers}${labelsSvg}${cross}<rect class="chart-hit" x="${MARGIN.left}" y="${MARGIN.top}" width="${iw}" height="${ih}"/></svg>`);
 
   const svg = ui.wrap.querySelector('svg');
   const line = svg.querySelector('.chart-cross');
@@ -133,7 +150,7 @@ export function barChart(el, { labels, values, color, name, unit = 'ventes', hei
   if (!present.length) return empty(el);
 
   const { hi, step } = niceScale(0, Math.max(...present), 4, true);
-  const m = { ...MARGIN, right: 16 };
+  const m = BASE_MARGIN;
   const iw = W - m.left - m.right;
   const ih = height - m.top - m.bottom;
   const n = labels.length;
