@@ -1,6 +1,6 @@
 // Constantes de configuration : sources de données et paramètres du cache
 
-// Contours des départements (métropole + DOM) - dépôt gregoiredavid/france-geojson
+// Contours des départements (métropole uniquement, sans les DOM) - dépôt gregoiredavid/france-geojson
 export const DEPARTMENTS_GEOJSON_URL =
   'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/departements-version-simplifiee.geojson';
 

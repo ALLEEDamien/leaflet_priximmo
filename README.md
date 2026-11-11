@@ -8,7 +8,7 @@ Cliquez sur un département pour colorer ses communes, filtrez par type de bien,
 
 ## Fonctionnalités
 
-- **Carte des départements** (métropole et DOM) colorée selon le prix médian au m², avec une légende.
+- **Carte des départements** (France métropolitaine) colorée selon le prix médian au m², avec une légende.
 - **Communes d'un département** : un clic sur un département, ou une recherche, zoome dessus et colore ses communes.
 - **Barre de recherche** de département, avec suggestions (nom ou code, sans tenir compte des accents) et navigation au clavier.
 - **Filtre par type de bien** : tous (appartements et maisons), appartements, maisons, locaux commerciaux.
@@ -103,6 +103,6 @@ Chaque module a une seule responsabilité et ne communique avec les autres que p
 ## Limites connues
 
 - Le fichier de contours des communes peut être un peu en retard sur les fusions de communes récentes : les communes concernées s'affichent en gris.
-- Mayotte n'est pas disponible dans les contours de départements utilisés.
+- Les départements d'outre-mer (Guadeloupe, Martinique, Guyane, La Réunion, Mayotte) ne sont pas affichés : le fichier de contours utilisé ne couvre que la métropole, alors que les prix existent pour eux.
 - Paris est affiché comme une seule commune (pas par arrondissement).
 - Il n'y a pas de bouton pour revenir à la vue France après avoir sélectionné un département, sauf à recharger la page.
